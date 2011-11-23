@@ -1,5 +1,6 @@
 (ns ai-playground.client.core
-  (:require [pinot.html :as html]
+  (:require [ai-playground.client.algorithms.clustering :as clustering]
+            [pinot.html :as html]
             [pinot.dom :as dom]
             [pinot.draw.visualization :as vis])
   (:require-macros [pinot.macros :as pm]))
@@ -13,35 +14,32 @@
 (pm/defpartial canvas []
   [:svg:svg {:width 800 :height 400}])
 
-(pm/defpartial item [[x y]]
-  [:svg:circle {:r (+ 4 (rand 4)) :cx x :cy y}])
-
 (dom/append (dom/query "body") (canvas))
-
-(def lines (for [x (range 0 780 20)
-                 y (range 0 380 20)
-                 d [0 20]]
-             [(+ x 10) (+ y 10) (+ x 10 d) (+ y 10 (- 20 d))]))
-
-(pm/defpartial line [[x1 y1 x2 y2]]
-  [:svg:line {:x1 x1 :y1 y1 :x2 x2 :y2 y2}])
-
-(-> (vis/visual lines)
-    (vis/elem line)
-    (vis/attr :stroke "#333")
-    (vis/enter (partial dom/append (dom/query "svg"))))
-
-(def items (for [x (range 0 800 20)
-                 y (range 0 400 20)]
-             [(+ x 10) (+ y 10)]))
 
 (def colors ["#b58900" "#cb4b16" "#dc322f" "#d33682" "#6c71c4" "#268bd2" "#2aa198" "#859900"])
 
-(-> (vis/visual items)
-  (vis/elem item)
-  (vis/attr :stroke "#333")
-  (vis/attr :fill #(rand-nth colors))
-;  (vis/attr :cx first)
-;  (vis/attr :cy second)
-  (vis/enter (partial dom/append (dom/query "svg"))))
+(pm/defpartial data-point [[x y]]
+  [:svg:circle {:r 4 :cx x :cy y :stroke "#333" :fill "#fff"}])
 
+(pm/defpartial mean [[x y]]
+  [:svg:circle {:r 6 :cx x :cy y :stroke "#333" :fill (colors 1)}])
+
+(defn random-cluster [n]
+  (let [cx (+ 50 (rand 700))
+        cy (+ 50 (rand 300))]
+    (for [_ (range n)]
+      [(+ cx -40 (rand 80)) (+ cy -40 (rand 80))])))
+
+(defn k-means-vis []
+  (let [k 5
+        N 8
+        data (mapcat random-cluster (repeat k N))
+        means (clustering/k-means k data)]
+    (-> (vis/visual data)
+        (vis/elem data-point)
+        (vis/enter (partial dom/append (dom/query "svg"))))
+    (-> (vis/visual means)
+        (vis/elem mean)
+        (vis/enter (partial dom/append (dom/query "svg"))))))
+
+(k-means-vis)
