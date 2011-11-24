@@ -27,3 +27,23 @@
         (if (= new-means initial-means)
           new-means
           (recur new-means))))))
+
+(defn k-means-init [{:keys [k dimension points] :as input}]
+  (let [initial-means (take k (repeatedly #(map (partial + (rand)) (rand-nth points))))
+        means-map (zipmap initial-means (map #({:index % :points []}) (range)))])
+  (merge input
+         {:next-step :group
+          :means means-map}))
+
+(defn k-means-group []
+  (merge input
+         {:next-step :move}))
+
+(defn k-means-move []
+  (merge input
+         {:next-step :group}))
+
+(defn k-means-step [{step :next-step :as input}]
+  (cond (= step :init) (k-means-init input)
+        (= step :group) (k-means-group input)
+        (= step :move) (k-means-move input)))

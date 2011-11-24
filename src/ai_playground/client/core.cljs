@@ -2,6 +2,7 @@
   (:require [ai-playground.client.algorithms.clustering :as clustering]
             [pinot.html :as html]
             [pinot.dom :as dom]
+            [pinot.events :as events]
             [pinot.draw.visualization :as vis])
   (:require-macros [pinot.macros :as pm]))
 
@@ -14,7 +15,19 @@
 (pm/defpartial canvas []
   [:svg:svg {:width 800 :height 400}])
 
+(pm/defpartial legend []
+  [:div#legend [:h2 "Legend"]])
+
+(pm/defpartial button [text]
+  [:input {:type "submit" :value text}])
+
+(defn append-button [parent text fn]
+  (let [b (button text)]
+    (events/on b :click fn)
+    (dom/append parent b)))
+
 (dom/append (dom/query "body") (canvas))
+(dom/append (dom/query "body") (legend))
 
 (def colors ["#b58900" "#cb4b16" "#dc322f" "#d33682" "#6c71c4" "#268bd2" "#2aa198" "#859900"])
 
@@ -23,6 +36,8 @@
 
 (pm/defpartial mean [[x y]]
   [:svg:circle {:r 6 :cx x :cy y :stroke "#333" :fill (colors 1)}])
+
+(def points (atom []))
 
 (defn random-cluster [n]
   (let [cx (+ 50 (rand 700))
@@ -35,11 +50,13 @@
         N 8
         data (mapcat random-cluster (repeat k N))
         means (clustering/k-means k data)]
-    (-> (vis/visual data)
+    (-> (vis/visual @points)
         (vis/elem data-point)
         (vis/enter (partial dom/append (dom/query "svg"))))
     (-> (vis/visual means)
         (vis/elem mean)
         (vis/enter (partial dom/append (dom/query "svg"))))))
 
-(k-means-vis)
+(append-button (dom/query "#legend") "Clear" #(dom/empty (dom/query "svg")))
+(append-button (dom/query "#legend") "Add Random Cluster" #(swap! points concat (random-cluster 8)))
+(append-button (dom/query "#legend") "Run" k-means-vis)
