@@ -28,22 +28,25 @@
           new-means
           (recur new-means))))))
 
-(defn k-means-init [{:keys [k dimension points] :as input}]
+(defn k-means-init [{:keys [k points] :as state}]
   (let [initial-means (take k (repeatedly #(map (partial + (rand)) (rand-nth points))))
-        means-map (zipmap initial-means (map #({:index % :points []}) (range)))])
-  (merge input
-         {:next-step :group
-          :means means-map}))
+        means-map (zipmap initial-means (map #({:index % :points []}) (range)))]
+    (merge state
+           {:next-step :group
+            :means means-map
+            :old-means {}})))
 
-(defn k-means-group []
-  (merge input
+(defn k-means-group [state]
+  (merge state
          {:next-step :move}))
 
-(defn k-means-move []
-  (merge input
+(defn k-means-move [state]
+  (merge state
          {:next-step :group}))
 
-(defn k-means-step [{step :next-step :as input}]
-  (cond (= step :init) (k-means-init input)
-        (= step :group) (k-means-group input)
-        (= step :move) (k-means-move input)))
+(defn k-means-step [state]
+  (condp = (state :next-step)
+    :init (k-means-init state)
+    :group (k-means-group state)
+    :move (k-means-move state)
+    (js/alert (str "Something's wrong! Next step is: " (state :next-step)))))

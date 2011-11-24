@@ -39,6 +39,11 @@
 
 (def points (atom []))
 
+(def initial-state {:next-step :init
+                    :k 3
+                    :points []})
+(def state (atom initial-state))
+
 (defn random-cluster [n]
   (let [cx (+ 50 (rand 700))
         cy (+ 50 (rand 300))]
@@ -57,13 +62,27 @@
         (vis/elem mean)
         (vis/enter (partial dom/append (dom/query "svg"))))))
 
-(defn add-random-cluster []
-  #(swap! points concat (random-cluster 8))
-  (-> (vis/select data-point)
-      (vis/transition 500)
-      (vis/data @points)
-      (vis/start)))
+(defn clear-svg []
+  (dom/empty (dom/query "svg")))
 
-(append-button (dom/query "#legend") "Clear" #(dom/empty (dom/query "svg")))
+(defn visualize []
+  (clear-svg)
+  (-> (vis/visual (@state :points))
+      (vis/elem data-point)
+      (vis/enter (partial dom/append (dom/query "svg")))))
+
+(defn add-random-cluster []
+  (swap! state (fn [{points :points :as state}]
+                 (assoc state :points (concat points (random-cluster 8)))))
+  (visualize))
+
+(defn step []
+  (js/alert (str (@state :next-step)))
+  (swap! state clustering/k-means-step)
+
+  (visualize))
+
+(append-button (dom/query "#legend") "Clear" #(do (swap! state (constantly initial-state)) (visualize)))
 (append-button (dom/query "#legend") "Add Random Cluster" add-random-cluster)
+(append-button (dom/query "#legend") "Step" step)
 (append-button (dom/query "#legend") "Run" k-means-vis)
