@@ -57,6 +57,13 @@
         (vis/elem mean)
         (vis/enter (partial dom/append (dom/query "svg"))))))
 
+(defn add-random-cluster []
+  #(swap! points concat (random-cluster 8))
+  (-> (vis/select data-point)
+      (vis/transition 500)
+      (vis/data @points)
+      (vis/start)))
+
 (append-button (dom/query "#legend") "Clear" #(dom/empty (dom/query "svg")))
-(append-button (dom/query "#legend") "Add Random Cluster" #(swap! points concat (random-cluster 8)))
+(append-button (dom/query "#legend") "Add Random Cluster" add-random-cluster)
 (append-button (dom/query "#legend") "Run" k-means-vis)
