@@ -31,16 +31,27 @@
 
 (def colors ["#b58900" "#cb4b16" "#dc322f" "#d33682" "#6c71c4" "#268bd2" "#2aa198" "#859900"])
 
-(pm/defpartial data-point [[x y]]
-  [:svg:circle {:r 4 :cx x :cy y :stroke "#333" :fill "#fff"}])
+(defn visualize-group [data function]
+  (-> (vis/visual data)
+      (vis/elem function)
+      (vis/enter (partial dom/append (dom/query "svg")))))
 
-(pm/defpartial mean [[x y]]
-  [:svg:circle {:r 6 :cx x :cy y :stroke "#333" :fill (colors 1)}])
+(pm/defpartial data-point [color [x y]]
+  [:svg:circle {:r 4 :cx x :cy y :stroke "#333" :fill color}])
+
+(pm/defpartial line [[x1 y1] [x2 y2]]
+  [:svg:line {:x1 x1 :y1 y1 :x2 x2 :y2 y2 :stroke "#ccc"}])
+
+(pm/defpartial mean [[[x y] {:keys [index points]}]]
+  (let [color (nth (cycle colors) index)]
+    (visualize-group points (partial data-point color))
+    (visualize-group points (partial line [x y]))
+    [:svg:circle {:r 6 :cx x :cy y :stroke "#333" :fill color}]))
 
 (def points (atom []))
 
 (def initial-state {:next-step :init
-                    :k 3
+                    :k 10
                     :points []})
 (def state (atom initial-state))
 
@@ -56,7 +67,7 @@
         data (mapcat random-cluster (repeat k N))
         means (clustering/k-means k data)]
     (-> (vis/visual @points)
-        (vis/elem data-point)
+        (vis/elem (partial data-point "#fff"))
         (vis/enter (partial dom/append (dom/query "svg"))))
     (-> (vis/visual means)
         (vis/elem mean)
@@ -67,12 +78,8 @@
 
 (defn visualize []
   (clear-svg)
-  (-> (vis/visual (@state :points))
-      (vis/elem data-point)
-      (vis/enter (partial dom/append (dom/query "svg"))))
-  (-> (vis/visual (keys (@state :means)))
-      (vis/elem mean)
-      (vis/enter (partial dom/append (dom/query "svg")))))
+  (visualize-group (@state :points) (partial data-point "#fff"))
+  (visualize-group (@state :means) mean))
 
 (defn add-random-cluster []
   (swap! state (fn [{points :points :as state}]
