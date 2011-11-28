@@ -69,6 +69,9 @@
   (clear-svg)
   (-> (vis/visual (@state :points))
       (vis/elem data-point)
+      (vis/enter (partial dom/append (dom/query "svg"))))
+  (-> (vis/visual (keys (@state :means)))
+      (vis/elem mean)
       (vis/enter (partial dom/append (dom/query "svg")))))
 
 (defn add-random-cluster []
@@ -77,7 +80,6 @@
   (visualize))
 
 (defn step []
-  (js/alert (str (@state :next-step)))
   (swap! state clustering/k-means-step)
 
   (visualize))

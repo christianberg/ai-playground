@@ -8,7 +8,7 @@
          closest-mean nil
          shortest-distance nil]
     (if (empty? means)
-      (merge-with conj means-map {closest-mean point})
+      (assoc-in means-map [closest-mean :points] (conj (get-in means-map [closest-mean :points]) point))
       (let [m (first means)
             d (distance-squared m point)]
         (if (or (nil? closest-mean) (< d shortest-distance))
@@ -30,19 +30,25 @@
 
 (defn k-means-init [{:keys [k points] :as state}]
   (let [initial-means (take k (repeatedly #(map (partial + (rand)) (rand-nth points))))
-        means-map (zipmap initial-means (map #({:index % :points []}) (range)))]
+        means-map (zipmap initial-means (map #(hash-map :index % :points []) (range k)))]
     (merge state
            {:next-step :group
             :means means-map
             :old-means {}})))
 
-(defn k-means-group [state]
+(defn k-means-group [{:keys [means points] :as state}]
   (merge state
-         {:next-step :move}))
+         {:next-step :move
+          :means (reduce append-to-closest
+                         (apply hash-map
+                                (mapcat (fn [[k v]] [k (assoc v :points [])]) means))
+                         points)}))
 
-(defn k-means-move [state]
+(defn k-means-move [{:keys [means] :as state}]
   (merge state
-         {:next-step :group}))
+         {:next-step :group
+          :means (apply hash-map
+                        (mapcat (fn [[k {:keys [points] :as v}]] [(if (seq points) (average points) k) v]) means))}))
 
 (defn k-means-step [state]
   (condp = (state :next-step)
