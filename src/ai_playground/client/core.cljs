@@ -3,7 +3,8 @@
             [pinot.html :as html]
             [pinot.dom :as dom]
             [pinot.events :as events]
-            [pinot.draw.visualization :as vis])
+            [pinot.draw.visualization :as vis]
+            [pinot.util.clj :as pclj])
   (:require-macros [pinot.macros :as pm]))
 
 (def x (html/html [:p [:em "hey"]]))
@@ -11,6 +12,9 @@
 (dom/attr x {:class "para"})
 ;(dom/val (dom/query "input"))
 
+(defn remove-attribute [elem k]
+  (doseq [el (pclj/->coll elem)]
+    (. el (removeAttribute (name k)))))
 
 (pm/defpartial canvas []
   [:svg:svg {:width 800 :height 400}])
@@ -18,13 +22,18 @@
 (pm/defpartial legend []
   [:div#legend [:h2 "Legend"]])
 
-(pm/defpartial button [text]
-  [:input {:type "submit" :value text}])
+(pm/defpartial button [text id]
+  (let [attr {:type "submit" :value text}
+        attr (if id (assoc attr :id id) attr)]
+    [:input attr]))
 
-(defn append-button [parent text fn]
-  (let [b (button text)]
-    (events/on b :click fn)
-    (dom/append parent b)))
+(defn append-button
+  ([parent text fn] (append-button parent text fn nil))
+  ([parent text fn id]
+     (let [b (if id (button text id) (button text))]
+       (events/on b :click fn)
+       (dom/append parent b)
+       b)))
 
 (dom/append (dom/query "body") (canvas))
 (dom/append (dom/query "body") (legend))
@@ -81,17 +90,26 @@
   (visualize-group (@state :points) (partial data-point "#fff"))
   (visualize-group (@state :means) mean))
 
+(defn enable-buttons [enabled]
+  (if enabled
+    (remove-attribute (dom/query "#step-button") :disabled)
+    (dom/attr (dom/query "#step-button") :disabled "disabled")))
+
 (defn add-random-cluster []
-  (swap! state (fn [{points :points :as state}]
-                 (assoc state :points (concat points (random-cluster 8)))))
+  (swap! state (fn [{:keys [points next-step] :as state}]
+                 (-> state
+                     (assoc :points (concat points (random-cluster 8)))
+                     (assoc :next-step (if (= next-step :init) :init :group)))))
+  (enable-buttons true)
   (visualize))
 
 (defn step []
   (swap! state clustering/k-means-step)
-
+  (when (= (@state :next-step) :done)
+    (enable-buttons false))
   (visualize))
 
 (append-button (dom/query "#legend") "Clear" #(do (swap! state (constantly initial-state)) (visualize)))
 (append-button (dom/query "#legend") "Add Random Cluster" add-random-cluster)
-(append-button (dom/query "#legend") "Step" step)
+(append-button (dom/query "#legend") "Step" step "step-button")
 (append-button (dom/query "#legend") "Run" k-means-vis)
