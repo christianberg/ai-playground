@@ -7,11 +7,6 @@
             [pinot.util.clj :as pclj])
   (:require-macros [pinot.macros :as pm]))
 
-(def x (html/html [:p [:em "hey"]]))
-(dom/css x {:color :blue})
-(dom/attr x {:class "para"})
-;(dom/val (dom/query "input"))
-
 (defn remove-attribute [elem k]
   (doseq [el (pclj/->coll elem)]
     (. el (removeAttribute (name k)))))
@@ -53,11 +48,9 @@
 
 (pm/defpartial mean [[[x y] {:keys [index points]}]]
   (let [color (nth (cycle colors) index)]
-    (visualize-group points (partial data-point color))
     (visualize-group points (partial line [x y]))
+    (visualize-group points (partial data-point color))
     [:svg:circle {:r 6 :cx x :cy y :stroke "#333" :fill color}]))
-
-(def points (atom []))
 
 (def initial-state {:next-step :init
                     :k 10
@@ -69,18 +62,6 @@
         cy (+ 50 (rand 300))]
     (for [_ (range n)]
       [(+ cx -40 (rand 80)) (+ cy -40 (rand 80))])))
-
-(defn k-means-vis []
-  (let [k 5
-        N 8
-        data (mapcat random-cluster (repeat k N))
-        means (clustering/k-means k data)]
-    (-> (vis/visual @points)
-        (vis/elem (partial data-point "#fff"))
-        (vis/enter (partial dom/append (dom/query "svg"))))
-    (-> (vis/visual means)
-        (vis/elem mean)
-        (vis/enter (partial dom/append (dom/query "svg"))))))
 
 (defn clear-svg []
   (dom/empty (dom/query "svg")))
@@ -109,7 +90,9 @@
     (enable-buttons false))
   (visualize))
 
+(defn run [])
+
 (append-button (dom/query "#legend") "Clear" #(do (swap! state (constantly initial-state)) (visualize)))
 (append-button (dom/query "#legend") "Add Random Cluster" add-random-cluster)
 (append-button (dom/query "#legend") "Step" step "step-button")
-(append-button (dom/query "#legend") "Run" k-means-vis)
+(append-button (dom/query "#legend") "Run" run "run-button")
