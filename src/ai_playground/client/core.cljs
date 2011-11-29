@@ -90,7 +90,9 @@
     (enable-buttons false))
   (visualize))
 
-(defn run [])
+(defn run []
+  (step)
+  (when (not= (@state :next-step) :done) (recur)))
 
 (append-button (dom/query "#legend") "Clear" #(do (swap! state (constantly initial-state)) (visualize)))
 (append-button (dom/query "#legend") "Add Random Cluster" add-random-cluster)
