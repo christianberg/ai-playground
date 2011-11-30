@@ -11,16 +11,24 @@
   (doseq [el (pclj/->coll elem)]
     (. el (removeAttribute (name k)))))
 
-(pm/defpartial canvas []
-  [:svg:svg {:width 800 :height 400}])
+(pm/defpartial page []
+  [:div.topbar
+   [:div.topbar-inner [:div.container-fluid [:a.brand "AI Playground"]]]]
+  [:div.container-fluid
+   [:div.sidebar]
+   [:div.content
+    [:div.row
+     [:div.span16
+      [:svg:svg {:width 800 :height 400}]]]
+    [:div.row
+     [:div#legend.span16]]]])
 
-(pm/defpartial legend []
-  [:div#legend [:h2 "Legend"]])
+(dom/append (dom/query "body") (page))
 
 (pm/defpartial button [text id]
   (let [attr {:type "submit" :value text}
         attr (if id (assoc attr :id id) attr)]
-    [:input attr]))
+    [:input.btn attr]))
 
 (defn append-button
   ([parent text fn] (append-button parent text fn nil))
@@ -29,9 +37,6 @@
        (events/on b :click fn)
        (dom/append parent b)
        b)))
-
-(dom/append (dom/query "body") (canvas))
-(dom/append (dom/query "body") (legend))
 
 (def colors ["#b58900" "#cb4b16" "#dc322f" "#d33682" "#6c71c4" "#268bd2" "#2aa198" "#859900"])
 
@@ -85,6 +90,12 @@
   (enable-buttons true)
   (visualize))
 
+(defn add-grid []
+  (swap! state (fn [state]
+                 (assoc state :points (for [x (range 10 800 20) y (range 10 400 20)] [x y]))))
+  (enable-buttons true)
+  (visualize))
+
 (defn step []
   (swap! state clustering/k-means-step)
   (when (= (@state :next-step) :done)
@@ -97,5 +108,6 @@
 
 (append-button (dom/query "#legend") "Clear" #(do (swap! state (constantly initial-state)) (visualize)))
 (append-button (dom/query "#legend") "Add Random Cluster" add-random-cluster)
+(append-button (dom/query "#legend") "Add Grid" add-grid)
 (append-button (dom/query "#legend") "Step" step "step-button")
 (append-button (dom/query "#legend") "Run" run "run-button")
