@@ -47,10 +47,11 @@
   [:svg:line {:x1 x1 :y1 y1 :x2 x2 :y2 y2 :stroke "#ccc"}])
 
 (pm/defpartial mean [[[x y] {:keys [index points]}]]
-  (let [color (nth (cycle colors) index)]
+  (let [color (nth (cycle colors) index)
+        r (Math/sqrt (+ 15 (* 4 (count points))))]
     (visualize-group points (partial line [x y]))
     (visualize-group points (partial data-point color))
-    [:svg:circle {:r 6 :cx x :cy y :stroke "#333" :fill color}]))
+    [:svg:circle {:r r :cx x :cy y :stroke "#333" :fill color}]))
 
 (def initial-state {:next-step :init
                     :k 10
