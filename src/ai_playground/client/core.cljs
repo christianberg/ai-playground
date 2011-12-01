@@ -7,6 +7,8 @@
             [pinot.util.clj :as pclj])
   (:require-macros [pinot.macros :as pm]))
 
+(def svg-size {:width 760 :height 400})
+
 (defn remove-attribute [elem k]
   (doseq [el (pclj/->coll elem)]
     (. el (removeAttribute (name k)))))
@@ -15,21 +17,27 @@
   [:div.topbar
    [:div.topbar-inner [:div.container-fluid [:a.brand "AI Playground"]]]]
   [:div.container-fluid
-   [:div.sidebar]
+   [:div.sidebar
+    [:div.well
+     [:h5 "Unsupervised Learning"]
+     [:ul [:li.active "K-Means"]]]]
    [:div.content
     [:div.row
      [:div.span16 [:h2 "K-Means"]]]
     [:div.row
-     [:div.span16
-      [:svg:svg {:width 800 :height 400}]]]
+     [:div.span13
+      [:svg:svg svg-size]]
+     [:div#options.span3 [:h5 "Options"]]]
     [:div.row
-     [:div#legend.span16]]]])
+     [:a#reset-button.btn.span3.offset2 "Reset"]
+     [:a#step-button.btn.span3 "Step"]
+     [:a#run-button.btn.span3 "Run"]]]])
 
 (dom/append (dom/query "body") (page))
 
 (pm/defpartial button [text id]
   (let [attr (if id {:id id} {})]
-    [:button.btn attr text]))
+    [:a.btn attr text]))
 
 (defn append-button
   ([parent text fn] (append-button parent text fn nil))
@@ -65,8 +73,8 @@
 (def state (atom initial-state))
 
 (defn random-cluster [n]
-  (let [cx (+ 50 (rand 700))
-        cy (+ 50 (rand 300))]
+  (let [cx (+ 50 (rand (- (:width svg-size) 100)))
+        cy (+ 50 (rand (- (:height svg-size) 100)))]
     (for [_ (range n)]
       [(+ cx -40 (rand 80)) (+ cy -40 (rand 80))])))
 
@@ -93,7 +101,7 @@
 
 (defn add-grid []
   (swap! state (fn [state]
-                 (assoc state :points (for [x (range 10 800 20) y (range 10 400 20)] [x y]))))
+                 (assoc state :points (for [x (range 10 (:width svg-size) 20) y (range 10 (:height svg-size) 20)] [x y]))))
   (enable-buttons true)
   (visualize))
 
@@ -107,8 +115,16 @@
   (step)
   (when (not= (@state :next-step) :done) (recur)))
 
+(defn reset []
+  (swap! state (constantly initial-state))
+  (visualize))
+
 (append-button (dom/query "#legend") "Clear" #(do (swap! state (constantly initial-state)) (visualize)))
-(append-button (dom/query "#legend") "Add Random Cluster" add-random-cluster)
+(append-button (dom/query "#options") "Add Random Cluster" add-random-cluster)
 (append-button (dom/query "#legend") "Add Grid" add-grid)
 (append-button (dom/query "#legend") "Step" step "step-button")
 (append-button (dom/query "#legend") "Run" run "run-button")
+
+(events/on (dom/query "#reset-button") :click reset)
+(events/on (dom/query "#step-button") :click step)
+(events/on (dom/query "#run-button") :click run)
