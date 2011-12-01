@@ -18,6 +18,8 @@
    [:div.sidebar]
    [:div.content
     [:div.row
+     [:div.span16 [:h2 "K-Means"]]]
+    [:div.row
      [:div.span16
       [:svg:svg {:width 800 :height 400}]]]
     [:div.row
@@ -26,9 +28,8 @@
 (dom/append (dom/query "body") (page))
 
 (pm/defpartial button [text id]
-  (let [attr {:type "submit" :value text}
-        attr (if id (assoc attr :id id) attr)]
-    [:input.btn attr]))
+  (let [attr (if id {:id id} {})]
+    [:button.btn attr text]))
 
 (defn append-button
   ([parent text fn] (append-button parent text fn nil))
