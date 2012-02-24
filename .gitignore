@@ -1,6 +1,10 @@
-pom.xml
-*jar
+/docs/
 /lib/
+/public/javascripts/
+/.repl/
 /classes/
-.lein-deps-sum
-/resources/public/cljs/
+/wiki
+/.lein-deps-sum
+*~
+/.lein-failures
+/.lein-git-deps/

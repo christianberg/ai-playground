@@ -1,17 +1,17 @@
-# ai-playground
+# AI Playground
 
-A website written in noir. 
+A playground for trying out and visualizing AI algorithms in
+ClojureScript. Inspired by [AI class][1] and Udacity's [CS373][2],
+built on [ClojureScript One][3].
 
-## Usage
+# License
 
-```bash
-lein deps
-lein run
-```
+Copyright © 2012 Christian Berg
+ClojureScript One code: Copyright © 2012 Brenton Ashworth and Relevance, Inc
 
-## License
+Distributed under the Eclipse Public License, the same as Clojure uses. See the file COPYING.
 
-Copyright (C) 2011 FIXME
-
-Distributed under the Eclipse Public License, the same as Clojure.
+[1]: http://ai-class.com/
+[2]: http://www.udacity.com/overview/Course/cs373
+[3]: http://clojurescriptone.com
 
