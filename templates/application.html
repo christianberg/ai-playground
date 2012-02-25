@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>ClojureScript One</title>
+    <title>AI Playground</title>
     <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="author" content="Christian Berg">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
@@ -14,7 +14,8 @@
 
     <!-- Le styles -->
     <link href="favicon.ico" rel="shortcut icon" type="image/x-icon">
-    <link href="css/one.css" rel="stylesheet">
+    <!--<link href="css/one.css" rel="stylesheet">-->
+    <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet"/>
     <!-- <link href="css/two.css" rel="stylesheet"> -->
     <style type="text/css">
       body {
@@ -39,15 +40,20 @@
 
     <_include file="toolbar.html"/>
 
-    <div class="container">
+    <div class="container-fluid">
 
-      <div id="content"></div>
-
-      <div id="options"></div>
+      <div class="row-fluid">
+        <div class="span3">
+          <_include file="sidebar.html"/>
+        </div>
+        <div class="span9">
+          <div id="content"></div>
+        </div>
+      </div>
 
       <footer></footer>
-
-    </div> <!-- /container -->
+      
+    </div> <!-- /container-fluid -->
 
   </body>
 </html>
